@@ -1,0 +1,28 @@
+name: socket_channels
+description: >-
+  One WebSocket, many channels — ref-counted subscriptions derived from stream
+  listeners, batched frames, typed payload routing and resubscribe on reconnect.
+version: 1.0.0
+homepage: https://github.com/CtrlAltDevelop
+repository: https://github.com/CtrlAltDevelop/socket_channels
+issue_tracker: https://github.com/CtrlAltDevelop/socket_channels/issues
+
+topics:
+  - websocket
+  - streams
+  - subscriptions
+  - reconnect
+  - realtime
+
+# No `flutter:` constraint on purpose: the package is pure Dart, and declaring
+# one would make the Flutter SDK mandatory for server and CLI consumers.
+# Flutter 3.47.0 ships Dart 3.13.0, so the SDK bound below covers it.
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  web_socket_channel: ^3.0.3
+
+dev_dependencies:
+  lints: ^6.1.0
+  test: ^1.31.2
