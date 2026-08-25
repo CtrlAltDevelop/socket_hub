@@ -147,6 +147,39 @@ void main() {
       expect(lease.isClosed, isTrue);
       expect(hub.activeSubscriptions, isEmpty);
     });
+
+    test(
+      'a stream kept past its last listener resubscribes on the next',
+      () async {
+        final FakeTransport transport = FakeTransport();
+        final SocketChannelHub<Payload> hub = SocketChannelHub<Payload>(
+          transport: () => transport,
+          codec: codec(),
+        );
+        addTearDown(hub.dispose);
+
+        // Held across the whole cycle, the way a repository hands one stream to
+        // successive widgets. The hub drops its controller in between, so this
+        // object has to find the new one rather than the one it started with.
+        final Stream<Payload> stream = hub.stream(ticker('BTC'));
+
+        await stream.listen((_) {}).cancel();
+        await settle();
+        expect(hub.activeSubscriptions, isEmpty);
+        transport.takeSent();
+
+        final List<Payload> seen = <Payload>[];
+        stream.listen(seen.add);
+        await settle();
+        expect(argsOf(transport.sent, 'subscribe'), hasLength(1));
+
+        transport.emit('{"channel":"ticker","symbol":"BTC","data":{"last":1}}');
+        await settle();
+
+        expect(seen, hasLength(1));
+        expect(hub.refCount(ticker('BTC')), 1);
+      },
+    );
   });
 
   group('routing', () {

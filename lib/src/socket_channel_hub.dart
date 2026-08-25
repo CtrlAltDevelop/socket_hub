@@ -202,13 +202,16 @@ class SocketChannelHub<T> {
   /// soon as a socket is ready.
   Stream<T> stream(SubscriptionKey key) {
     _assertUsable();
-    final StreamController<T> controller = _controllerFor(key);
 
     // Stream.multi rather than the controller's own stream, so each listener
     // is counted: a broadcast controller's onListen fires only on the first
     // one, which would make two listeners look like one caller.
     return Stream<T>.multi((MultiStreamController<T> out) {
       _retain(key);
+      // Looked up here rather than when `stream` was called: the controller is
+      // dropped once nothing holds the key, so a stream object kept across a
+      // subscribe/unsubscribe cycle has to find the current one.
+      final StreamController<T> controller = _controllerFor(key);
       // Subscribing first and replaying second cannot reorder anything: both
       // happen inside this one synchronous block, and a controller delivers
       // its queue in the order things were added to it.
@@ -268,6 +271,11 @@ class SocketChannelHub<T> {
     if (current <= 1) {
       _refCounts.remove(key);
       _latest.remove(key);
+      // Dropped, not kept: a session cycling through symbols would otherwise
+      // grow this map for its whole life. Not closed — the listener whose
+      // cancel brought the count here is still unwinding, and a done event
+      // now would race it. Unreferenced, it is collected either way.
+      _controllers.remove(key);
       _scheduleFlush();
     } else {
       _refCounts[key] = current - 1;

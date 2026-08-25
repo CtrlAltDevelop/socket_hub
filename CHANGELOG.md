@@ -34,7 +34,10 @@ originals got wrong are fixed here rather than carried over.
 - **The payload cache is bounded.** The originals created a stream controller
   for every key an inbound frame mentioned, whether or not anyone had asked for
   it, so a server pushing hundreds of symbols grew the map for the life of the
-  session. Nothing is now created or retained for a key no caller holds.
+  session. Nothing is now created or retained for a key no caller holds: the
+  controller is made when the first listener arrives and dropped when the last
+  one leaves, so a session cycling through symbols keeps a map the size of what
+  is on screen rather than of everything ever looked at.
 - `SocketCodec` — the whole protocol behind four methods, with `handshake`
   running after the socket opens and before any subscription frame, so a login
   gating private channels is ordered by construction rather than by a
@@ -67,5 +70,5 @@ originals got wrong are fixed here rather than carried over.
   retry and resumed into a still-unreachable server sat in `connecting` with
   nothing on a timer, needing a restart to recover.
 - Dartdoc across the public API, a runnable `example/` that needs no network,
-  and 65 tests covering reference counting, batching, routing, fan-out,
+  and 66 tests covering reference counting, batching, routing, fan-out,
   reconnection, the handshake, the keepalive and the lifecycle.
