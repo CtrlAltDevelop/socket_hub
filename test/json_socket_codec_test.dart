@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:socket_channels/socket_channels.dart';
+import 'package:socket_hub/socket_hub.dart';
 import 'package:test/test.dart';
 
 /// A payload type that is easy to assert on.

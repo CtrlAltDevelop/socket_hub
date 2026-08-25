@@ -55,7 +55,7 @@ originals got wrong are fixed here rather than carried over.
 - `SocketTransport` — the socket behind an interface, with `WebSocketTransport`
   over `package:web_socket_channel`. The originals reached for
   `WebSocketChannel.connect` directly and so could not be tested at all.
-- `socket_channels_testing.dart` — `FakeTransport`, a socket with nothing
+- `socket_hub_testing.dart` — `FakeTransport`, a socket with nothing
   behind it, and `MockSocketServer`, which reads the frames a hub sends and
   answers them. Mock mode becomes a different far end rather than a parallel set
   of data sources.

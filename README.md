@@ -1,4 +1,4 @@
-# socket_channels
+# socket_hub
 
 One WebSocket, many channels. A hub owns the connection and hands out **a
 stream per subscription** — listening subscribes, cancelling unsubscribes, and
@@ -52,7 +52,7 @@ channel — is a [`SocketCodec`](#the-codec). One is already written for the
 
 ```yaml
 dependencies:
-  socket_channels: ^1.0.0
+  socket_hub: ^1.0.0
 ```
 
 Requires Dart 3.13.0 or newer — Flutter 3.47.0 or newer, if you are on Flutter.
@@ -350,7 +350,7 @@ reused.
 
 ## Testing against it
 
-`package:socket_channels/socket_channels_testing.dart` has the two pieces that
+`package:socket_hub/socket_hub_testing.dart` has the two pieces that
 make a hub testable without a server.
 
 **`FakeTransport`** is a socket with nothing behind it. Everything the far end
@@ -397,11 +397,11 @@ mode, set it to the cadence you want and let it run.
 
 A market-data socket end to end — login handshake, four channels, a fan-out, a
 dropped socket that comes back — is in
-[`example/socket_channels_example.dart`](example/socket_channels_example.dart).
+[`example/socket_hub_example.dart`](example/socket_hub_example.dart).
 It runs as it stands, with no network:
 
 ```bash
-dart run example/socket_channels_example.dart
+dart run example/socket_hub_example.dart
 ```
 
 ## Contributing
@@ -419,4 +419,4 @@ dart format . && dart analyze --fatal-infos && dart test
 
 MIT — see [LICENSE](LICENSE).
 
-[`SubscriptionKey`]: https://pub.dev/documentation/socket_channels/latest/socket_channels/SubscriptionKey-class.html
+[`SubscriptionKey`]: https://pub.dev/documentation/socket_hub/latest/socket_hub/SubscriptionKey-class.html

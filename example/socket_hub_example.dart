@@ -1,14 +1,14 @@
 // A market-data socket, end to end, with no network involved: the far end is
 // MockSocketServer from the testing library, so this file runs as it stands.
 //
-//   dart run example/socket_channels_example.dart
+//   dart run example/socket_hub_example.dart
 //
 // Swap `transport: server.open` for
 // `transport: () => WebSocketTransport.connect(url)` and the rest is unchanged.
 import 'dart:convert';
 
-import 'package:socket_channels/socket_channels.dart';
-import 'package:socket_channels/socket_channels_testing.dart';
+import 'package:socket_hub/socket_hub.dart';
+import 'package:socket_hub/socket_hub_testing.dart';
 
 /// The channels this server publishes.
 ///

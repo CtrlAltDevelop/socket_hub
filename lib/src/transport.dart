@@ -6,7 +6,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 ///
 /// Everything the hub needs from a connection is behind this interface, so a
 /// test can drive the hub with `FakeTransport` from
-/// `package:socket_channels/socket_channels_testing.dart` instead of a server,
+/// `package:socket_hub/socket_hub_testing.dart` instead of a server,
 /// and mock mode can feed it generated data.
 abstract interface class SocketTransport {
   /// Frames arriving from the far end, exactly as the socket delivers them —

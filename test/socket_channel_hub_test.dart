@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:socket_channels/socket_channels.dart';
-import 'package:socket_channels/socket_channels_testing.dart';
+import 'package:socket_hub/socket_hub.dart';
+import 'package:socket_hub/socket_hub_testing.dart';
 import 'package:test/test.dart';
 
 /// Lets every pending microtask and zero-duration timer run.

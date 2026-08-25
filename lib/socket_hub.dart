@@ -32,7 +32,7 @@
 /// ```
 ///
 /// Pure Dart, so it works in Flutter apps, server code and CLIs alike. For
-/// tests and mock modes, `package:socket_channels/socket_channels_testing.dart`
+/// tests and mock modes, `package:socket_hub/socket_hub_testing.dart`
 /// brings a fake transport and a stand-in server.
 library;
 

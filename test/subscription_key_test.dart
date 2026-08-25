@@ -1,4 +1,4 @@
-import 'package:socket_channels/socket_channels.dart';
+import 'package:socket_hub/socket_hub.dart';
 import 'package:test/test.dart';
 
 void main() {

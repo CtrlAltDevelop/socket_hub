@@ -1,4 +1,4 @@
-name: socket_channels
+name: socket_hub
 description: >-
   One WebSocket, many channels — ref-counted subscriptions derived from stream
   listeners, batched frames, typed payload routing and resubscribe on reconnect.

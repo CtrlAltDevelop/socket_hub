@@ -1,4 +1,4 @@
-/// Test doubles for `socket_channels`: a socket with no network behind it, and
+/// Test doubles for `socket_hub`: a socket with no network behind it, and
 /// a stand-in server that answers what a hub subscribes to.
 ///
 /// Import this in tests, and in a mock mode where the real backend is not
