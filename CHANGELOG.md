@@ -59,6 +59,12 @@ originals got wrong are fixed here rather than carried over.
   two ints does integer arithmetic, which wraps to zero past 2⁶³ — so a long
   outage would have produced a zero delay and a reconnect storm. Caught by a
   test asserting the delay stops growing at `maxDelay`.
+- **`disconnect()` clears the failure flag it left behind.** That flag stops
+  one dying socket reporting itself three times from scheduling three
+  reconnects. Left set by a disconnect that landed mid-backoff, it also
+  swallowed the failure of the *next* attempt — so an app backgrounded during a
+  retry and resumed into a still-unreachable server sat in `connecting` with
+  nothing on a timer, needing a restart to recover.
 - Dartdoc across the public API, a runnable `example/` that needs no network,
-  and 63 tests covering reference counting, batching, routing, fan-out,
+  and 64 tests covering reference counting, batching, routing, fan-out,
   reconnection, the handshake, the keepalive and the lifecycle.

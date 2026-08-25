@@ -356,6 +356,10 @@ class SocketChannelHub<T> {
   Future<void> disconnect() async {
     _cancelReconnect();
     _attempt = 0;
+    // Cleared with the socket. It guards against one dying connection
+    // reporting itself twice; left set, it would swallow the failure of the
+    // *next* attempt and leave the hub connecting with nothing scheduled.
+    _failing = false;
     await _teardownSocket();
     if (!_disposed) _setState(SocketConnectionState.idle);
   }

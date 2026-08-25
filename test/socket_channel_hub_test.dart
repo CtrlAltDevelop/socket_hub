@@ -505,6 +505,42 @@ void main() {
   });
 
   group('lifecycle', () {
+    test('disconnect mid-backoff leaves the next failure retryable', () async {
+      final List<FakeTransport> transports = <FakeTransport>[];
+      final SocketChannelHub<Payload> hub = SocketChannelHub<Payload>(
+        transport: () {
+          final FakeTransport transport = FakeTransport(autoReady: false);
+          transports.add(transport);
+          return transport;
+        },
+        codec: codec(),
+        reconnectPolicy: const ReconnectPolicy(
+          initialDelay: Duration(milliseconds: 10),
+          jitter: 0,
+        ),
+      );
+      addTearDown(hub.dispose);
+
+      unawaited(hub.connect());
+      await settle();
+      transports.last.failReady(StateError('refused'));
+      await settle();
+      expect(hub.connectionState, SocketConnectionState.reconnecting);
+
+      // The app backgrounds while a retry is pending, then comes back — and
+      // the attempt on resume fails too. It must still schedule its own retry
+      // rather than sit in `connecting` with nothing on a timer.
+      await hub.disconnect();
+      expect(hub.connectionState, SocketConnectionState.idle);
+
+      unawaited(hub.connect());
+      await settle();
+      transports.last.failReady(StateError('refused again'));
+      await settle();
+
+      expect(hub.connectionState, SocketConnectionState.reconnecting);
+    });
+
     test('disconnect keeps subscriptions; connect restores them', () async {
       final List<FakeTransport> transports = <FakeTransport>[];
       final SocketChannelHub<Payload> hub = SocketChannelHub<Payload>(
