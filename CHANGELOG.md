@@ -29,7 +29,8 @@ originals got wrong are fixed here rather than carried over.
 - **A keepalive.** `heartbeatInterval` sends the codec's ping frame, and
   `idleTimeout` treats a socket that has delivered nothing for that long as
   dead and reopens it. Neither existed before, which is the other half of why a
-  silently dropped connection went unnoticed.
+  silently dropped connection went unnoticed. The two run on separate timers,
+  so a protocol needing no ping can still have its dead sockets noticed.
 - **The payload cache is bounded.** The originals created a stream controller
   for every key an inbound frame mentioned, whether or not anyone had asked for
   it, so a server pushing hundreds of symbols grew the map for the life of the
@@ -66,5 +67,5 @@ originals got wrong are fixed here rather than carried over.
   retry and resumed into a still-unreachable server sat in `connecting` with
   nothing on a timer, needing a restart to recover.
 - Dartdoc across the public API, a runnable `example/` that needs no network,
-  and 64 tests covering reference counting, batching, routing, fan-out,
+  and 65 tests covering reference counting, batching, routing, fan-out,
   reconnection, the handshake, the keepalive and the lifecycle.

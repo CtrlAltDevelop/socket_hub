@@ -146,6 +146,7 @@ class SocketChannelHub<T> {
   Future<void>? _opening;
   Timer? _reconnectTimer;
   Timer? _heartbeatTimer;
+  Timer? _idleTimer;
   DateTime? _lastFrameAt;
   List<SocketControl<Object?>>? _handshakeBuffer;
   int _attempt = 0;
@@ -427,7 +428,7 @@ class SocketChannelHub<T> {
     _failing = false;
     _lastFrameAt = DateTime.now();
     _setState(SocketConnectionState.ready);
-    _startHeartbeat();
+    _startTimers();
     _reconcile();
   }
 
@@ -472,6 +473,8 @@ class SocketChannelHub<T> {
   Future<void> _teardownSocket() async {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
+    _idleTimer?.cancel();
+    _idleTimer = null;
     final StreamSubscription<dynamic>? sub = _socketSub;
     _socketSub = null;
     await sub?.cancel();
@@ -492,33 +495,50 @@ class SocketChannelHub<T> {
     if (!_states.isClosed) _states.add(state);
   }
 
-  // -------------------------------------------------------------- heartbeat
+  // -------------------------------------------------------------- keepalive
+
+  void _startTimers() {
+    _startHeartbeat();
+    _startIdleWatchdog();
+  }
 
   void _startHeartbeat() {
     final Duration? interval = heartbeatInterval;
-    if (interval == null) return;
-    if (codec.encodeHeartbeat() == null && idleTimeout == null) return;
+    if (interval == null || codec.encodeHeartbeat() == null) return;
 
     _heartbeatTimer = Timer.periodic(interval, (_) {
       if (!_state.isReady) return;
-
-      final Duration? limit = idleTimeout;
-      final DateTime? last = _lastFrameAt;
-      if (limit != null &&
-          last != null &&
-          DateTime.now().difference(last) > limit) {
-        _report('Nothing received for $limit; treating the socket as dead.');
-        unawaited(
-          _failConnection(
-            TimeoutException('Socket idle for longer than $limit'),
-            StackTrace.current,
-          ),
-        );
-        return;
-      }
-
       final Object? frame = codec.encodeHeartbeat();
       if (frame != null) _sendRaw(frame);
+    });
+  }
+
+  /// Watches for a socket that has stopped delivering.
+  ///
+  /// Independent of the heartbeat: a server that needs no ping can still have
+  /// its silence noticed. The check ticks twice per [idleTimeout] rather than
+  /// resetting a timer on every inbound frame, which on a busy feed would mean
+  /// a timer per frame — so a dead socket is caught somewhere between
+  /// [idleTimeout] and one and a half times it.
+  void _startIdleWatchdog() {
+    final Duration? limit = idleTimeout;
+    if (limit == null) return;
+    final Duration period = Duration(
+      microseconds: max(1, limit.inMicroseconds ~/ 2),
+    );
+
+    _idleTimer = Timer.periodic(period, (_) {
+      if (!_state.isReady) return;
+      final DateTime? last = _lastFrameAt;
+      if (last == null || DateTime.now().difference(last) <= limit) return;
+
+      _report('Nothing received for $limit; treating the socket as dead.');
+      unawaited(
+        _failConnection(
+          TimeoutException('Socket idle for longer than $limit'),
+          StackTrace.current,
+        ),
+      );
     });
   }
 

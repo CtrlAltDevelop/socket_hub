@@ -502,6 +502,31 @@ void main() {
 
       expect(transports.length, greaterThan(1));
     });
+
+    test('idleTimeout watches a silent socket with no heartbeat set', () async {
+      final List<FakeTransport> transports = <FakeTransport>[];
+      final SocketChannelHub<Payload> hub = SocketChannelHub<Payload>(
+        transport: () {
+          final FakeTransport transport = FakeTransport();
+          transports.add(transport);
+          return transport;
+        },
+        // No heartbeatInterval, and a codec with no ping frame: a protocol
+        // that needs no keepalive still wants its dead sockets noticed.
+        codec: codec(),
+        idleTimeout: const Duration(milliseconds: 20),
+        reconnectPolicy: const ReconnectPolicy(
+          initialDelay: Duration(milliseconds: 1),
+          jitter: 0,
+        ),
+      );
+      addTearDown(hub.dispose);
+
+      await hub.connect();
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+
+      expect(transports.length, greaterThan(1));
+    });
   });
 
   group('lifecycle', () {

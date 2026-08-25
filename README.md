@@ -303,7 +303,9 @@ final hub = SocketChannelHub<Payload>(
 
 `heartbeatInterval` sends the codec's heartbeat frame on a timer.
 `idleTimeout` treats a socket that has delivered nothing for that long as dead
-and reconnects it. Both are off by default.
+and reconnects it. Both are off by default, and independent of one another — a
+protocol that needs no ping can still set `idleTimeout` alone, and the silence
+is noticed somewhere between that timeout and one and a half times it.
 
 ### Backgrounding
 
