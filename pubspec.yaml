@@ -2,10 +2,10 @@ name: socket_hub
 description: >-
   One WebSocket, many channels — ref-counted subscriptions derived from stream
   listeners, batched frames, typed payload routing and resubscribe on reconnect.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/CtrlAltDevelop
-repository: https://github.com/CtrlAltDevelop/socket_channels
-issue_tracker: https://github.com/CtrlAltDevelop/socket_channels/issues
+repository: https://github.com/CtrlAltDevelop/socket_hub
+issue_tracker: https://github.com/CtrlAltDevelop/socket_hub/issues
 
 topics:
   - websocket

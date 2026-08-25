@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+
+- Point the `repository` and `issue_tracker` links, and the README's GitHub
+  link, at the renamed `socket_hub` repository. No code changes.
+
 ## 1.0.0
 
 Initial release, extracted from three near-identical WebSocket data sources in

@@ -407,7 +407,7 @@ dart run example/socket_hub_example.dart
 ## Contributing
 
 Issues and pull requests are welcome on
-[GitHub](https://github.com/CtrlAltDevelop/socket_channels). CI runs formatting,
+[GitHub](https://github.com/CtrlAltDevelop/socket_hub). CI runs formatting,
 analysis and the test suite against both the minimum supported SDK and current
 stable, so the same three commands are what to run first:
 
