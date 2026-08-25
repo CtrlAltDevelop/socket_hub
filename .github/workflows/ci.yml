@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The version pubspec.yaml claims to support, and the current one.
+        # A library that compiles on stable alone has an untested lower bound.
+        sdk: ['3.13.0', stable]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.sdk }}
+
+      - run: dart pub get
+
+      - name: Formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analysis
+        run: dart analyze --fatal-infos
+
+      - run: dart test
+
+      - name: The example still runs
+        run: dart run example/socket_channels_example.dart
+
+  publish-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart pub publish --dry-run

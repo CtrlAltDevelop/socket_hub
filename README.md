@@ -404,6 +404,17 @@ It runs as it stands, with no network:
 dart run example/socket_channels_example.dart
 ```
 
+## Contributing
+
+Issues and pull requests are welcome on
+[GitHub](https://github.com/CtrlAltDevelop/socket_channels). CI runs formatting,
+analysis and the test suite against both the minimum supported SDK and current
+stable, so the same three commands are what to run first:
+
+```bash
+dart format . && dart analyze --fatal-infos && dart test
+```
+
 ## Licence
 
 MIT — see [LICENSE](LICENSE).

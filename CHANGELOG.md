@@ -71,4 +71,6 @@ originals got wrong are fixed here rather than carried over.
   nothing on a timer, needing a restart to recover.
 - Dartdoc across the public API, a runnable `example/` that needs no network,
   and 66 tests covering reference counting, batching, routing, fan-out,
-  reconnection, the handshake, the keepalive and the lifecycle.
+  reconnection, the handshake, the keepalive and the lifecycle. CI runs them,
+  the formatter, the analyzer and a publish dry run against both the minimum
+  supported SDK and current stable.
