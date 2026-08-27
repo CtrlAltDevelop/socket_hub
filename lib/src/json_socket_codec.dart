@@ -9,6 +9,16 @@ import 'subscription_key.dart';
 /// ignored rather than taking the connection down.
 typedef JsonPayloadParser<T> = T Function(Object? data);
 
+/// Reads the error a control frame reports, or null when it reports success.
+///
+/// The default reads [JsonSocketCodec.errorField]. Supply one for a server
+/// that spells failure some other way:
+///
+/// ```dart
+/// errorReader: (frame) => frame['success'] == false ? frame['msg'] : null,
+/// ```
+typedef JsonErrorReader = Object? Function(Map<String, Object?> frame);
+
 /// A codec for the `{"op": "subscribe", "args": [...]}` JSON convention that
 /// most exchange and market-data sockets speak.
 ///
@@ -64,6 +74,14 @@ class JsonSocketCodec<T> extends SocketCodec<T> {
   /// arguments. That is the seam for an account feed which arrives per symbol
   /// but which a portfolio screen wants whole.
   ///
+  /// [controlOps] narrows which `op` values mark a control frame. Left null,
+  /// any frame carrying [opField] is control — the usual case. Name them
+  /// explicitly for a server that puts an `op` on its data frames too, and
+  /// anything outside the set is decoded as data.
+  ///
+  /// [errorReader] overrides how a control frame's error is read; see
+  /// [JsonErrorReader].
+  ///
   /// [heartbeatFrame] is sent by the hub on its heartbeat interval, if one is
   /// configured — `{'op': 'ping'}` for most of these servers.
   JsonSocketCodec({
@@ -71,6 +89,8 @@ class JsonSocketCodec<T> extends SocketCodec<T> {
     Set<String> keyFields = const <String>{'symbol'},
     Map<String, Set<String>> channelKeyFields = const <String, Set<String>>{},
     Set<String> fanOutChannels = const <String>{},
+    Set<String>? controlOps,
+    this.errorReader,
     this.opField = 'op',
     this.channelField = 'channel',
     this.dataField = 'data',
@@ -84,15 +104,24 @@ class JsonSocketCodec<T> extends SocketCodec<T> {
        _channelKeyFields = Map<String, Set<String>>.unmodifiable(
          channelKeyFields,
        ),
-       _fanOutChannels = Set<String>.unmodifiable(fanOutChannels);
+       _fanOutChannels = Set<String>.unmodifiable(fanOutChannels),
+       controlOps = controlOps == null
+           ? null
+           : Set<String>.unmodifiable(controlOps);
 
   final Map<String, JsonPayloadParser<T>> _parsers;
   final Set<String> _keyFields;
   final Map<String, Set<String>> _channelKeyFields;
   final Set<String> _fanOutChannels;
 
+  /// The `op` values that mark a control frame, or null for "any of them".
+  final Set<String>? controlOps;
+
+  /// How a control frame's error is read, or null to read [errorField].
+  final JsonErrorReader? errorReader;
+
   /// The field naming a control frame's operation. Its presence is what marks
-  /// a frame as control rather than data.
+  /// a frame as control rather than data, unless [controlOps] narrows it.
   final String opField;
 
   /// The field naming the channel a data frame belongs to.
@@ -152,8 +181,8 @@ class JsonSocketCodec<T> extends SocketCodec<T> {
     }
 
     final Object? op = json[opField];
-    if (op is String) {
-      return SocketControl<T>(op, error: json[errorField], frame: json);
+    if (op is String && (controlOps?.contains(op) ?? true)) {
+      return SocketControl<T>(op, error: _errorIn(json), frame: json);
     }
 
     final Map<String, Object?>? args = _asJsonMap(json[argsField]);
@@ -203,6 +232,11 @@ class JsonSocketCodec<T> extends SocketCodec<T> {
         if (_fanOutChannels.contains(channel)) SubscriptionKey(channel),
       ],
     );
+  }
+
+  Object? _errorIn(Map<String, Object?> json) {
+    final JsonErrorReader? reader = errorReader;
+    return reader == null ? json[errorField] : reader(json);
   }
 
   Map<String, Object?>? _asJsonMap(Object? value) {

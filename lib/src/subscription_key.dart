@@ -26,6 +26,33 @@ final class SubscriptionKey {
           if (e.value != null) e.key: e.value!,
       });
 
+  /// Rebuilds a key from the canonical [id] of another.
+  ///
+  /// The inverse of [id], so a key logged or persisted in one run can be read
+  /// back in the next:
+  ///
+  /// ```dart
+  /// SubscriptionKey.parse('candle|interval=15m|symbol=BTC');
+  /// ```
+  ///
+  /// Throws a [FormatException] if [id] is empty, or if a segment after the
+  /// channel has no `=` in it. The format is only unambiguous while no channel
+  /// name contains `|` and no argument name contains `|` or `=`; argument
+  /// *values* may contain `=` freely, as only the first one splits a segment.
+  factory SubscriptionKey.parse(String id) {
+    if (id.isEmpty) throw const FormatException('An empty subscription id.');
+    final List<String> parts = id.split('|');
+    final Map<String, String?> args = <String, String?>{};
+    for (final String part in parts.skip(1)) {
+      final int split = part.indexOf('=');
+      if (split <= 0) {
+        throw FormatException('Not a "name=value" argument: "$part"', id);
+      }
+      args[part.substring(0, split)] = part.substring(split + 1);
+    }
+    return SubscriptionKey(parts.first, args);
+  }
+
   /// The channel name, as the server spells it.
   final String channel;
 

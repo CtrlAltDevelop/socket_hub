@@ -286,6 +286,35 @@ void main() {
       await settle();
 
       expect(hub.latest(ticker('DOGE')), isNull);
+      expect(hub.hasLatest(ticker('DOGE')), isFalse);
+    });
+
+    test('a retained null payload is replayed like any other', () async {
+      final FakeTransport transport = FakeTransport();
+      final SocketChannelHub<Payload?> hub = SocketChannelHub<Payload?>(
+        transport: () => transport,
+        codec: JsonSocketCodec<Payload?>(
+          parsers: <String, JsonPayloadParser<Payload?>>{
+            'ticker': (Object? data) => null,
+          },
+        ),
+        retainLatest: true,
+      );
+      addTearDown(hub.dispose);
+
+      hub.stream(ticker('BTC')).listen((_) {});
+      await hub.whenReady();
+      transport.emit('{"channel":"ticker","symbol":"BTC","data":{"last":7}}');
+      await settle();
+
+      expect(hub.latest(ticker('BTC')), isNull);
+      expect(hub.hasLatest(ticker('BTC')), isTrue);
+
+      final List<Payload?> late = <Payload?>[];
+      hub.stream(ticker('BTC')).listen(late.add);
+      await settle();
+
+      expect(late, <Payload?>[null]);
     });
   });
 
@@ -686,6 +715,27 @@ void main() {
       await hub.connect();
       expect(hub.send('{"op":"noop"}'), isTrue);
       expect(transport.sent, contains('{"op":"noop"}'));
+    });
+
+    test('whenReady gives up on its timeout, leaving the hub alone', () async {
+      final FakeTransport transport = FakeTransport(autoReady: false);
+      final SocketChannelHub<Payload> hub = SocketChannelHub<Payload>(
+        transport: () => transport,
+        codec: codec(),
+      );
+      addTearDown(hub.dispose);
+
+      unawaited(hub.connect());
+      await expectLater(
+        hub.whenReady(timeout: const Duration(milliseconds: 20)),
+        throwsA(isA<TimeoutException>()),
+      );
+      expect(hub.connectionState, SocketConnectionState.connecting);
+
+      transport.completeReady();
+      await hub.whenReady(timeout: const Duration(seconds: 5));
+
+      expect(hub.connectionState, SocketConnectionState.ready);
     });
 
     test('autoConnect false leaves the socket shut until asked', () async {

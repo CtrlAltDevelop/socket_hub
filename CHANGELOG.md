@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.1.0
+
+- `SubscriptionKey.parse` reads a key back from the canonical `id`, so an id
+  that was logged or persisted in one run is usable in the next. The round trip
+  is exact while no channel or argument name contains `|` or `=`; argument
+  values may contain `=` freely.
+- `whenReady` takes a `timeout`. It throws a `TimeoutException` and leaves the
+  hub alone — still connecting, still reconnecting — rather than making a
+  caller who wants to give up waiting tear the hub down.
+- **`retainLatest` no longer loses a null payload.** The replay tested the
+  cached value for null rather than the cache for the key, so with a nullable
+  payload type a retained null was silently dropped and a late listener sat
+  empty. `hasLatest(key)` now distinguishes "nothing retained" from "null was
+  retained", which `latest(key)` alone cannot.
+- **The idle watchdog measures elapsed time on a `Stopwatch`.** It compared
+  wall-clock `DateTime`s, so a clock stepped backwards (an NTP correction, a
+  user changing the time) held a dead socket open, and a step forwards killed a
+  live one.
+- `JsonSocketCodec` gains `controlOps` and `errorReader`. `controlOps` names
+  the `op` values that mean control, so a server that stamps an `op` on its
+  data frames too no longer has them swallowed as control; `errorReader`
+  replaces the `errorField` lookup for a server reporting failure some other
+  way, such as `{"success": false, "msg": …}`. Both default to the previous
+  behaviour.
+
 ## 1.0.1
 
 - Point the `repository` and `issue_tracker` links, and the README's GitHub

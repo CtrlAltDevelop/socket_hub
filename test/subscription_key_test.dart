@@ -78,6 +78,31 @@ void main() {
       expect(counts.values.single, 2);
     });
 
+    test('parse is the inverse of id', () {
+      final SubscriptionKey key = SubscriptionKey('candle', <String, String>{
+        'symbol': 'BTC',
+        'interval': '15m',
+      });
+
+      expect(SubscriptionKey.parse(key.id), key);
+      expect(SubscriptionKey.parse('ticker'), SubscriptionKey('ticker'));
+    });
+
+    test('parse keeps an "=" inside a value', () {
+      final SubscriptionKey key = SubscriptionKey.parse('feed|filter=a=b');
+
+      expect(key.args, <String, String>{'filter': 'a=b'});
+    });
+
+    test('parse rejects an empty id and a malformed argument', () {
+      expect(() => SubscriptionKey.parse(''), throwsFormatException);
+      expect(
+        () => SubscriptionKey.parse('ticker|symbol'),
+        throwsFormatException,
+      );
+      expect(() => SubscriptionKey.parse('ticker|=BTC'), throwsFormatException);
+    });
+
     test('toString names the id', () {
       expect(
         SubscriptionKey('ticker', <String, String>{'symbol': 'BTC'}).toString(),

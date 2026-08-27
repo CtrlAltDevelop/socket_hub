@@ -52,7 +52,7 @@ channel — is a [`SocketCodec`](#the-codec). One is already written for the
 
 ```yaml
 dependencies:
-  socket_hub: ^1.0.0
+  socket_hub: ^1.1.0
 ```
 
 Requires Dart 3.13.0 or newer — Flutter 3.47.0 or newer, if you are on Flutter.
@@ -140,6 +140,11 @@ final hub = SocketChannelHub<Payload>(
 hub.latest(Channel.ticker.of(symbol: 'BTCUSDT'));   // or read it directly
 ```
 
+`latest` returns null both for a key with nothing retained and for one whose
+retained payload *is* null, which a nullable payload type allows;
+`hasLatest(key)` tells the two apart. A retained null is replayed to a new
+listener like any other value.
+
 Nothing is cached for a key no caller holds, so a server that pushes hundreds
 of symbols cannot grow the cache without bound.
 
@@ -193,6 +198,19 @@ A frame carrying `op` is control rather than data. Every field name is
 configurable — `opField`, `channelField`, `dataField`, `argsField`,
 `errorField`, `subscribeOp`, `unsubscribeOp` — for a server that spells them
 its own way.
+
+Two escape hatches cover servers that do not fit that split. `controlOps` names
+the `op` values that actually mean control, so a server which stamps an `op` on
+its data frames too still routes them as data. `errorReader` replaces the
+`errorField` lookup for one that reports failure some other way:
+
+```dart
+JsonSocketCodec<Payload>(
+  parsers: {'ticker': Ticker.fromJson},
+  controlOps: {'subscribe', 'unsubscribe', 'login', 'pong'},
+  errorReader: (frame) => frame['success'] == false ? frame['msg'] : null,
+);
+```
 
 | Parameter | Default | Meaning |
 | --- | --- | --- |
@@ -341,11 +359,11 @@ reused.
 | `stream(key)` | The payloads for `key`. Listening subscribes, cancelling unsubscribes |
 | `subscribe(key)` / `subscribeAll(keys)` | A lease holding subscriptions open with no listener |
 | `connect()` / `disconnect()` / `dispose()` | Lifecycle. `connect` does not throw on a failed attempt |
-| `whenReady()` | Completes the next time the hub is ready |
+| `whenReady({timeout})` | Completes the next time the hub is ready; throws a `TimeoutException` if `timeout` passes first, leaving the hub reconnecting |
 | `connectionState` / `connectionStates` | Where it is now, and every change |
 | `controlFrames` | Control frames the codec reported |
 | `activeSubscriptions` / `wireSubscriptions` | What callers want, and what the server has been told |
-| `refCount(key)` / `latest(key)` | Diagnostics, and the retained payload |
+| `refCount(key)` / `latest(key)` / `hasLatest(key)` | Diagnostics, and the retained payload |
 | `send(frame)` | Sends a raw frame, bypassing the codec |
 
 ## Testing against it

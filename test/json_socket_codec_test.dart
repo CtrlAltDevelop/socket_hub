@@ -277,4 +277,44 @@ void main() {
       expect(codec.decode('{"event":"sub"}'), isA<SocketControl<Tick>>());
     },
   );
+
+  test('controlOps keeps a data frame that carries an op', () {
+    final JsonSocketCodec<Tick> codec = JsonSocketCodec<Tick>(
+      parsers: <String, JsonPayloadParser<Tick>>{'ticker': Tick.fromJson},
+      controlOps: const <String>{'subscribe', 'login'},
+    );
+
+    expect(
+      codec.decode(
+        '{"op":"update","channel":"ticker","symbol":"BTC","data":{"last":1}}',
+      ),
+      isA<SocketPayload<Tick>>(),
+    );
+    expect(codec.decode('{"op":"login"}'), isA<SocketControl<Tick>>());
+  });
+
+  test('errorReader decides whether a control frame failed', () {
+    final JsonSocketCodec<Tick> codec = JsonSocketCodec<Tick>(
+      parsers: <String, JsonPayloadParser<Tick>>{'ticker': Tick.fromJson},
+      errorReader: (Map<String, Object?> frame) =>
+          frame['success'] == false ? frame['msg'] : null,
+    );
+
+    expect(
+      codec.decode('{"op":"login","success":false,"msg":"expired"}'),
+      isA<SocketControl<Tick>>().having(
+        (SocketControl<Tick> c) => c.error,
+        'error',
+        'expired',
+      ),
+    );
+    expect(
+      codec.decode('{"op":"login","success":true,"error":"ignored"}'),
+      isA<SocketControl<Tick>>().having(
+        (SocketControl<Tick> c) => c.isError,
+        'isError',
+        isFalse,
+      ),
+    );
+  });
 }

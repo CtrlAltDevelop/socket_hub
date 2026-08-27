@@ -147,7 +147,10 @@ class SocketChannelHub<T> {
   Timer? _reconnectTimer;
   Timer? _heartbeatTimer;
   Timer? _idleTimer;
-  DateTime? _lastFrameAt;
+  // A stopwatch, not a DateTime: the watchdog measures elapsed time, and the
+  // wall clock can jump backwards (an NTP correction, a user changing the
+  // clock) and hold a dead socket open, or jump forwards and kill a live one.
+  final Stopwatch _sinceLastFrame = Stopwatch();
   List<SocketControl<Object?>>? _handshakeBuffer;
   int _attempt = 0;
   bool _flushScheduled = false;
@@ -183,7 +186,14 @@ class SocketChannelHub<T> {
   int refCount(SubscriptionKey key) => _refCounts[key] ?? 0;
 
   /// The payload last routed to [key], when [retainLatest] is on.
+  ///
+  /// Null both when nothing has been retained and when the retained payload
+  /// *is* null, which a nullable [T] allows. Use [hasLatest] to tell them
+  /// apart.
   T? latest(SubscriptionKey key) => _latest[key];
+
+  /// Whether a payload has been retained for [key].
+  bool hasLatest(SubscriptionKey key) => _latest.containsKey(key);
 
   // ---------------------------------------------------------------- streams
 
@@ -220,9 +230,10 @@ class SocketChannelHub<T> {
         onError: out.addError,
         onDone: out.close,
       );
-      if (retainLatest) {
-        final T? cached = _latest[key];
-        if (cached != null) out.add(cached);
+      // containsKey, not a null check on the value: with a nullable T a null
+      // payload is a payload, and a new listener should see it like any other.
+      if (retainLatest && _latest.containsKey(key)) {
+        out.add(_latest[key] as T);
       }
       // Released before the inner cancel is awaited, not after: awaiting first
       // would push the release into a later microtask than the pending flush,
@@ -342,12 +353,19 @@ class SocketChannelHub<T> {
   /// Completes the next time the hub reaches [SocketConnectionState.ready].
   ///
   /// Returns immediately if it is ready now. Throws a [StateError] if the hub
-  /// is closed, or closes while this is waiting.
-  Future<void> whenReady() async {
-    if (_state.isReady) return;
+  /// is closed, or closes while this is waiting, and a [TimeoutException] if
+  /// [timeout] passes first — the hub itself is untouched by that, and keeps
+  /// reconnecting.
+  Future<void> whenReady({Duration? timeout}) {
+    if (_state.isReady) return Future<void>.value();
     if (_state.isClosed) {
       throw StateError('This SocketChannelHub is closed.');
     }
+    final Future<void> ready = _awaitReady();
+    return timeout == null ? ready : ready.timeout(timeout);
+  }
+
+  Future<void> _awaitReady() async {
     await for (final SocketConnectionState state in _states.stream) {
       if (state.isReady) return;
       if (state.isClosed) break;
@@ -434,7 +452,9 @@ class SocketChannelHub<T> {
 
     _attempt = 0;
     _failing = false;
-    _lastFrameAt = DateTime.now();
+    _sinceLastFrame
+      ..reset()
+      ..start();
     _setState(SocketConnectionState.ready);
     _startTimers();
     _reconcile();
@@ -479,6 +499,7 @@ class SocketChannelHub<T> {
   }
 
   Future<void> _teardownSocket() async {
+    _sinceLastFrame.stop();
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
     _idleTimer?.cancel();
@@ -537,8 +558,7 @@ class SocketChannelHub<T> {
 
     _idleTimer = Timer.periodic(period, (_) {
       if (!_state.isReady) return;
-      final DateTime? last = _lastFrameAt;
-      if (last == null || DateTime.now().difference(last) <= limit) return;
+      if (_sinceLastFrame.elapsed <= limit) return;
 
       _report('Nothing received for $limit; treating the socket as dead.');
       unawaited(
@@ -577,7 +597,7 @@ class SocketChannelHub<T> {
   // --------------------------------------------------------------- inbound
 
   void _onFrame(dynamic raw) {
-    _lastFrameAt = DateTime.now();
+    _sinceLastFrame.reset();
 
     final SocketDecoded<T> decoded;
     try {
