@@ -13,7 +13,7 @@ jobs:
       matrix:
         # The version pubspec.yaml claims to support, and the current one.
         # A library that compiles on stable alone has an untested lower bound.
-        sdk: ['3.13.0', stable]
+        sdk: ['3.3.0', stable]
     steps:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
@@ -22,7 +22,10 @@ jobs:
 
       - run: dart pub get
 
+      # Stable only: the formatter's own style changed in 3.7, so the floor
+      # SDK would reformat this source and fail a check it cannot pass.
       - name: Formatting
+        if: matrix.sdk == 'stable'
         run: dart format --output=none --set-exit-if-changed .
 
       - name: Analysis

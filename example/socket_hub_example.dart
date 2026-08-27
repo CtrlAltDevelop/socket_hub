@@ -44,22 +44,22 @@ Payload parse(Object? data) => (data! as Map).cast<String, Object?>();
 /// private channels are gated behind.
 class ExchangeCodec extends JsonSocketCodec<Payload> {
   ExchangeCodec(this._token)
-    : super(
-        parsers: <String, JsonPayloadParser<Payload>>{
-          Channel.ticker.wire: parse,
-          Channel.candle.wire: parse,
-          Channel.orders.wire: parse,
-        },
-        // A candle frame carries its interval inside `data`, so the interval
-        // has to be part of the key or two intervals would share a stream.
-        channelKeyFields: <String, Set<String>>{
-          Channel.candle.wire: <String>{'symbol', 'interval'},
-        },
-        // An order arrives for one symbol but a portfolio screen wants them
-        // all, so every order is routed twice.
-        fanOutChannels: <String>{Channel.orders.wire},
-        heartbeatFrame: const <String, Object?>{'op': 'ping'},
-      );
+      : super(
+          parsers: <String, JsonPayloadParser<Payload>>{
+            Channel.ticker.wire: parse,
+            Channel.candle.wire: parse,
+            Channel.orders.wire: parse,
+          },
+          // A candle frame carries its interval inside `data`, so the interval
+          // has to be part of the key or two intervals would share a stream.
+          channelKeyFields: <String, Set<String>>{
+            Channel.candle.wire: <String>{'symbol', 'interval'},
+          },
+          // An order arrives for one symbol but a portfolio screen wants them
+          // all, so every order is routed twice.
+          fanOutChannels: <String>{Channel.orders.wire},
+          heartbeatFrame: const <String, Object?>{'op': 'ping'},
+        );
 
   final String? _token;
 
@@ -84,17 +84,16 @@ Future<void> main() async {
       return switch (key.channel) {
         'ticker' => <String, Object?>{'symbol': symbol, 'last': 64000 + tick},
         'candle' => <String, Object?>{
-          'interval': key.args['interval'],
-          'close': 64000 + tick,
-        },
-        'account_orders' =>
-          tick.isEven
-              ? <String, Object?>{
-                  'symbol': symbol,
-                  'id': tick,
-                  'status': 'FILLED',
-                }
-              : null, // nothing to report this tick
+            'interval': key.args['interval'],
+            'close': 64000 + tick,
+          },
+        'account_orders' => tick.isEven
+            ? <String, Object?>{
+                'symbol': symbol,
+                'id': tick,
+                'status': 'FILLED',
+              }
+            : null, // nothing to report this tick
         _ => null,
       };
     },

@@ -17,17 +17,18 @@ void main() {
   JsonSocketCodec<Tick> codecUnder({
     Set<String> fanOut = const <String>{},
     Map<String, Set<String>> channelKeyFields = const <String, Set<String>>{},
-  }) => JsonSocketCodec<Tick>(
-    parsers: <String, JsonPayloadParser<Tick>>{
-      'ticker': Tick.fromJson,
-      'candle': Tick.fromJson,
-      'orders': Tick.fromJson,
-      'quote': Tick.fromJson,
-    },
-    channelKeyFields: channelKeyFields,
-    fanOutChannels: fanOut,
-    heartbeatFrame: const <String, Object?>{'op': 'ping'},
-  );
+  }) =>
+      JsonSocketCodec<Tick>(
+        parsers: <String, JsonPayloadParser<Tick>>{
+          'ticker': Tick.fromJson,
+          'candle': Tick.fromJson,
+          'orders': Tick.fromJson,
+          'quote': Tick.fromJson,
+        },
+        channelKeyFields: channelKeyFields,
+        fanOutChannels: fanOut,
+        heartbeatFrame: const <String, Object?>{'op': 'ping'},
+      );
 
   group('encoding', () {
     test('batches every key into one subscribe frame', () {
@@ -101,15 +102,14 @@ void main() {
     });
 
     test('reads a key field out of data when the top level lacks it', () {
-      final SocketDecoded<Tick> decoded =
-          codecUnder(
-            channelKeyFields: <String, Set<String>>{
-              'candle': <String>{'symbol', 'interval'},
-            },
-          ).decode(
-            '{"channel":"candle","symbol":"BTC",'
-            '"data":{"interval":"15m","close":1}}',
-          );
+      final SocketDecoded<Tick> decoded = codecUnder(
+        channelKeyFields: <String, Set<String>>{
+          'candle': <String>{'symbol', 'interval'},
+        },
+      ).decode(
+        '{"channel":"candle","symbol":"BTC",'
+        '"data":{"interval":"15m","close":1}}',
+      );
 
       expect(
         (decoded as SocketPayload<Tick>).keys.single.id,
@@ -120,15 +120,14 @@ void main() {
     test('reads the channel and key fields out of a nested args map', () {
       // The shape a convert/quote feed uses: nothing identifying at the top
       // level except the action.
-      final SocketDecoded<Tick> decoded =
-          codecUnder(
-            channelKeyFields: <String, Set<String>>{
-              'quote': <String>{'asset', 'pair'},
-            },
-          ).decode(
-            '{"action":"update","args":{"channel":"quote","asset":"BTC",'
-            '"pair":"USDT"},"data":{"rate":"64000"}}',
-          );
+      final SocketDecoded<Tick> decoded = codecUnder(
+        channelKeyFields: <String, Set<String>>{
+          'quote': <String>{'asset', 'pair'},
+        },
+      ).decode(
+        '{"action":"update","args":{"channel":"quote","asset":"BTC",'
+        '"pair":"USDT"},"data":{"rate":"64000"}}',
+      );
 
       expect(
         (decoded as SocketPayload<Tick>).keys.single.id,
@@ -259,9 +258,8 @@ void main() {
       expect(
         jsonDecode(
           codec.encodeSubscribe(<SubscriptionKey>[
-                SubscriptionKey('ticker', <String, String>{'symbol': 'BTC'}),
-              ])!
-              as String,
+            SubscriptionKey('ticker', <String, String>{'symbol': 'BTC'}),
+          ])! as String,
         ),
         <String, Object?>{
           'event': 'sub',

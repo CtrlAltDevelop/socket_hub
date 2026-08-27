@@ -18,6 +18,13 @@
   wall-clock `DateTime`s, so a clock stepped backwards (an NTP correction, a
   user changing the time) held a dead socket open, and a step forwards killed a
   live one.
+- **The SDK floor drops from Dart 3.13.0 to 3.3.0** — Flutter 3.19.0 — which
+  is where `web_socket_channel` 3.0.3 starts and below which nothing here can
+  go. The old bound was the SDK the package happened to be written on rather
+  than anything the code needed, and it kept the package out of every app not
+  yet on the newest Flutter. The dev dependencies are ranged rather than
+  pinned to their newest major so the floor resolves. CI builds on 3.3.0 as
+  well as stable.
 - `JsonSocketCodec` gains `controlOps` and `errorReader`. `controlOps` names
   the `op` values that mean control, so a server that stamps an `op` on its
   data frames too no longer has them swallowed as control; `errorReader`

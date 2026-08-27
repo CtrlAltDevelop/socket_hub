@@ -99,15 +99,14 @@ class JsonSocketCodec<T> extends SocketCodec<T> {
     this.subscribeOp = 'subscribe',
     this.unsubscribeOp = 'unsubscribe',
     this.heartbeatFrame,
-  }) : _parsers = Map<String, JsonPayloadParser<T>>.unmodifiable(parsers),
-       _keyFields = Set<String>.unmodifiable(keyFields),
-       _channelKeyFields = Map<String, Set<String>>.unmodifiable(
-         channelKeyFields,
-       ),
-       _fanOutChannels = Set<String>.unmodifiable(fanOutChannels),
-       controlOps = controlOps == null
-           ? null
-           : Set<String>.unmodifiable(controlOps);
+  })  : _parsers = Map<String, JsonPayloadParser<T>>.unmodifiable(parsers),
+        _keyFields = Set<String>.unmodifiable(keyFields),
+        _channelKeyFields = Map<String, Set<String>>.unmodifiable(
+          channelKeyFields,
+        ),
+        _fanOutChannels = Set<String>.unmodifiable(fanOutChannels),
+        controlOps =
+            controlOps == null ? null : Set<String>.unmodifiable(controlOps);
 
   final Map<String, JsonPayloadParser<T>> _parsers;
   final Set<String> _keyFields;

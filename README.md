@@ -55,7 +55,7 @@ dependencies:
   socket_hub: ^1.1.0
 ```
 
-Requires Dart 3.13.0 or newer — Flutter 3.47.0 or newer, if you are on Flutter.
+Requires Dart 3.3.0 or newer — Flutter 3.19.0 or newer, if you are on Flutter.
 There is no `flutter` constraint in `pubspec.yaml`, so the package still
 resolves in server and CLI projects with no Flutter SDK installed.
 
