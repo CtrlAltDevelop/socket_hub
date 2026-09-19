@@ -20,16 +20,15 @@ Payload parse(Object? data) => (data! as Map).cast<String, Object?>();
 JsonSocketCodec<Payload> codec({
   Set<String> fanOut = const <String>{},
   Map<String, Object?>? heartbeat,
-}) =>
-    JsonSocketCodec<Payload>(
-      parsers: <String, JsonPayloadParser<Payload>>{
-        'ticker': parse,
-        'trades': parse,
-        'orders': parse,
-      },
-      fanOutChannels: fanOut,
-      heartbeatFrame: heartbeat,
-    );
+}) => JsonSocketCodec<Payload>(
+  parsers: <String, JsonPayloadParser<Payload>>{
+    'ticker': parse,
+    'trades': parse,
+    'orders': parse,
+  },
+  fanOutChannels: fanOut,
+  heartbeatFrame: heartbeat,
+);
 
 /// The `args` of every subscribe/unsubscribe frame in [frames], flattened to
 /// the channel/argument maps the server would see.
@@ -76,14 +75,16 @@ void main() {
       );
       addTearDown(hub.dispose);
 
-      final StreamSubscription<Payload> first =
-          hub.stream(ticker('BTC')).listen((_) {});
+      final StreamSubscription<Payload> first = hub
+          .stream(ticker('BTC'))
+          .listen((_) {});
       await hub.whenReady();
       await settle();
       transport.takeSent();
 
-      final StreamSubscription<Payload> second =
-          hub.stream(ticker('BTC')).listen((_) {});
+      final StreamSubscription<Payload> second = hub
+          .stream(ticker('BTC'))
+          .listen((_) {});
       await settle();
       expect(transport.sent, isEmpty, reason: 'already subscribed');
       expect(hub.refCount(ticker('BTC')), 2, reason: 'each listener counts');
@@ -400,7 +401,9 @@ void main() {
 
       Object? error;
       bool done = false;
-      hub.stream(ticker('BTC')).listen(
+      hub
+          .stream(ticker('BTC'))
+          .listen(
             (_) {},
             onError: (Object e) => error = e,
             onDone: () => done = true,
@@ -780,7 +783,7 @@ void main() {
 /// the fake answering it.
 class _LoginCodec extends JsonSocketCodec<Payload> {
   _LoginCodec(this._transport)
-      : super(parsers: <String, JsonPayloadParser<Payload>>{'ticker': parse});
+    : super(parsers: <String, JsonPayloadParser<Payload>>{'ticker': parse});
 
   final FakeTransport _transport;
 

@@ -17,18 +17,17 @@ void main() {
   JsonSocketCodec<Tick> codecUnder({
     Set<String> fanOut = const <String>{},
     Map<String, Set<String>> channelKeyFields = const <String, Set<String>>{},
-  }) =>
-      JsonSocketCodec<Tick>(
-        parsers: <String, JsonPayloadParser<Tick>>{
-          'ticker': Tick.fromJson,
-          'candle': Tick.fromJson,
-          'orders': Tick.fromJson,
-          'quote': Tick.fromJson,
-        },
-        channelKeyFields: channelKeyFields,
-        fanOutChannels: fanOut,
-        heartbeatFrame: const <String, Object?>{'op': 'ping'},
-      );
+  }) => JsonSocketCodec<Tick>(
+    parsers: <String, JsonPayloadParser<Tick>>{
+      'ticker': Tick.fromJson,
+      'candle': Tick.fromJson,
+      'orders': Tick.fromJson,
+      'quote': Tick.fromJson,
+    },
+    channelKeyFields: channelKeyFields,
+    fanOutChannels: fanOut,
+    heartbeatFrame: const <String, Object?>{'op': 'ping'},
+  );
 
   group('encoding', () {
     test('batches every key into one subscribe frame', () {
@@ -72,8 +71,9 @@ void main() {
         <String, Object?>{'op': 'ping'},
       );
       expect(
-        JsonSocketCodec<Tick>(parsers: <String, JsonPayloadParser<Tick>>{})
-            .encodeHeartbeat(),
+        JsonSocketCodec<Tick>(
+          parsers: <String, JsonPayloadParser<Tick>>{},
+        ).encodeHeartbeat(),
         isNull,
       );
     });
@@ -102,14 +102,15 @@ void main() {
     });
 
     test('reads a key field out of data when the top level lacks it', () {
-      final SocketDecoded<Tick> decoded = codecUnder(
-        channelKeyFields: <String, Set<String>>{
-          'candle': <String>{'symbol', 'interval'},
-        },
-      ).decode(
-        '{"channel":"candle","symbol":"BTC",'
-        '"data":{"interval":"15m","close":1}}',
-      );
+      final SocketDecoded<Tick> decoded =
+          codecUnder(
+            channelKeyFields: <String, Set<String>>{
+              'candle': <String>{'symbol', 'interval'},
+            },
+          ).decode(
+            '{"channel":"candle","symbol":"BTC",'
+            '"data":{"interval":"15m","close":1}}',
+          );
 
       expect(
         (decoded as SocketPayload<Tick>).keys.single.id,
@@ -120,14 +121,15 @@ void main() {
     test('reads the channel and key fields out of a nested args map', () {
       // The shape a convert/quote feed uses: nothing identifying at the top
       // level except the action.
-      final SocketDecoded<Tick> decoded = codecUnder(
-        channelKeyFields: <String, Set<String>>{
-          'quote': <String>{'asset', 'pair'},
-        },
-      ).decode(
-        '{"action":"update","args":{"channel":"quote","asset":"BTC",'
-        '"pair":"USDT"},"data":{"rate":"64000"}}',
-      );
+      final SocketDecoded<Tick> decoded =
+          codecUnder(
+            channelKeyFields: <String, Set<String>>{
+              'quote': <String>{'asset', 'pair'},
+            },
+          ).decode(
+            '{"action":"update","args":{"channel":"quote","asset":"BTC",'
+            '"pair":"USDT"},"data":{"rate":"64000"}}',
+          );
 
       expect(
         (decoded as SocketPayload<Tick>).keys.single.id,
@@ -136,8 +138,9 @@ void main() {
     });
 
     test('fans a payload out to the bare channel as well', () {
-      final SocketDecoded<Tick> decoded = codecUnder(fanOut: <String>{'orders'})
-          .decode('{"channel":"orders","symbol":"BTC","data":{"id":1}}');
+      final SocketDecoded<Tick> decoded = codecUnder(
+        fanOut: <String>{'orders'},
+      ).decode('{"channel":"orders","symbol":"BTC","data":{"id":1}}');
 
       expect(
         (decoded as SocketPayload<Tick>).keys.map((SubscriptionKey k) => k.id),
@@ -180,9 +183,9 @@ void main() {
     });
 
     test('carries the error the server reported', () {
-      final SocketControl<Tick> control = codecUnder().decode(
-        '{"op":"login","error":"token expired"}',
-      ) as SocketControl<Tick>;
+      final SocketControl<Tick> control =
+          codecUnder().decode('{"op":"login","error":"token expired"}')
+              as SocketControl<Tick>;
 
       expect(control.isError, isTrue);
       expect(control.error, 'token expired');
@@ -258,8 +261,9 @@ void main() {
       expect(
         jsonDecode(
           codec.encodeSubscribe(<SubscriptionKey>[
-            SubscriptionKey('ticker', <String, String>{'symbol': 'BTC'}),
-          ])! as String,
+                SubscriptionKey('ticker', <String, String>{'symbol': 'BTC'}),
+              ])!
+              as String,
         ),
         <String, Object?>{
           'event': 'sub',

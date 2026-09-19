@@ -27,20 +27,20 @@ class ReconnectPolicy {
     this.factor = 2,
     this.jitter = 0.2,
     this.maxAttempts,
-  })  : assert(factor >= 1, 'factor below 1 would shrink the delay'),
-        assert(jitter >= 0 && jitter <= 1, 'jitter is a fraction of the delay'),
-        assert(
-          maxAttempts == null || maxAttempts > 0,
-          'maxAttempts 0 means never reconnect — use ReconnectPolicy.none()',
-        );
+  }) : assert(factor >= 1, 'factor below 1 would shrink the delay'),
+       assert(jitter >= 0 && jitter <= 1, 'jitter is a fraction of the delay'),
+       assert(
+         maxAttempts == null || maxAttempts > 0,
+         'maxAttempts 0 means never reconnect — use ReconnectPolicy.none()',
+       );
 
   /// A policy that never reconnects: the first drop closes the hub.
   const ReconnectPolicy.none()
-      : initialDelay = Duration.zero,
-        maxDelay = Duration.zero,
-        factor = 1,
-        jitter = 0,
-        maxAttempts = 0;
+    : initialDelay = Duration.zero,
+      maxDelay = Duration.zero,
+      factor = 1,
+      jitter = 0,
+      maxAttempts = 0;
 
   /// The wait before the first reconnect attempt.
   final Duration initialDelay;
@@ -69,7 +69,8 @@ class ReconnectPolicy {
     // pow() with two ints does integer arithmetic, which wraps to zero
     // once the exponent passes 63. Doubles saturate to infinity instead,
     // and min() below caps that at maxDelay.
-    final double raw = initialDelay.inMicroseconds *
+    final double raw =
+        initialDelay.inMicroseconds *
         pow(factor.toDouble(), attempt - 1).toDouble();
     final double capped = min(raw, maxDelay.inMicroseconds.toDouble());
     if (jitter == 0) return Duration(microseconds: capped.round());

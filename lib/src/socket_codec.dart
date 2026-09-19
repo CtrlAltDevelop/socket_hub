@@ -29,7 +29,7 @@ final class SocketPayload<T> extends SocketDecoded<T> {
 
   /// Routes [value] to a single key.
   SocketPayload.single(this.value, SubscriptionKey key)
-      : keys = <SubscriptionKey>[key];
+    : keys = <SubscriptionKey>[key];
 
   /// The decoded payload, as the host's own type.
   final T value;

@@ -1,5 +1,10 @@
 # socket_hub
 
+[![pub package](https://img.shields.io/pub/v/socket_hub.svg)](https://pub.dev/packages/socket_hub)
+[![pub points](https://img.shields.io/pub/points/socket_hub)](https://pub.dev/packages/socket_hub/score)
+[![CI](https://github.com/CtrlAltDevelop/socket_hub/actions/workflows/ci.yml/badge.svg)](https://github.com/CtrlAltDevelop/socket_hub/actions/workflows/ci.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/CtrlAltDevelop/socket_hub/blob/main/LICENSE)
+
 One WebSocket, many channels. A hub owns the connection and hands out **a
 stream per subscription** — listening subscribes, cancelling unsubscribes, and
 everything asked for in the same turn of the event loop leaves as a single
@@ -52,12 +57,14 @@ channel — is a [`SocketCodec`](#the-codec). One is already written for the
 
 ```yaml
 dependencies:
-  socket_hub: ^1.1.0
+  socket_hub: ">=1.2.0 <2.0.0"
 ```
 
-Requires Dart 3.3.0 or newer — Flutter 3.19.0 or newer, if you are on Flutter.
-There is no `flutter` constraint in `pubspec.yaml`, so the package still
-resolves in server and CLI projects with no Flutter SDK installed.
+Requires Dart 3.12.0 or newer — Flutter 3.44.0 or newer, if you are on
+Flutter. The code needs nothing newer than Dart 3.0 — the
+floor is the one every package here is gated on. There is no `flutter`
+constraint in `pubspec.yaml`, so the package still resolves in server and CLI
+projects with no Flutter SDK installed.
 
 ## Subscriptions
 
@@ -426,8 +433,10 @@ dart run example/socket_hub_example.dart
 
 Issues and pull requests are welcome on
 [GitHub](https://github.com/CtrlAltDevelop/socket_hub). CI runs formatting,
-analysis and the test suite against both the minimum supported SDK and current
-stable, so the same three commands are what to run first:
+analysis, the test suite, the example and `pana` on current stable — the shared
+gate in
+[CtrlAltDevelop/ci-workflows](https://github.com/CtrlAltDevelop/ci-workflows) —
+so these three commands are what to run first:
 
 ```bash
 dart format . && dart analyze --fatal-infos && dart test

@@ -15,11 +15,8 @@ import 'transport.dart';
 /// log: (message, {error, stackTrace}) =>
 ///     logger.d(message, error: error, stackTrace: stackTrace),
 /// ```
-typedef SocketLogger = void Function(
-  String message, {
-  Object? error,
-  StackTrace? stackTrace,
-});
+typedef SocketLogger =
+    void Function(String message, {Object? error, StackTrace? stackTrace});
 
 /// A live subscription held open without a listener.
 ///

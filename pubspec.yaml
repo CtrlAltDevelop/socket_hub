@@ -2,7 +2,7 @@ name: socket_hub
 description: >-
   One WebSocket, many channels — ref-counted subscriptions derived from stream
   listeners, batched frames, typed payload routing and resubscribe on reconnect.
-version: 1.1.0
+version: 1.2.0
 homepage: https://github.com/CtrlAltDevelop
 repository: https://github.com/CtrlAltDevelop/socket_hub
 issue_tracker: https://github.com/CtrlAltDevelop/socket_hub/issues
@@ -17,20 +17,16 @@ topics:
 # No `flutter:` constraint on purpose: the package is pure Dart, and declaring
 # one would make the Flutter SDK mandatory for server and CLI consumers.
 #
-# The floor is what the code and the dependencies actually need, not what was
-# current when it was written: Dart 3.3.0 is where `web_socket_channel` 3.0.3
-# starts, and nothing here uses a language feature newer than Dart 3.0. That
-# is Flutter 3.19.0 for anyone on Flutter. CI builds on the floor as well as
-# on stable, so the bound is tested rather than claimed.
+# The floor is Dart 3.12, the SDK every package here is gated on — Flutter
+# 3.44.0 for anyone on Flutter. The code needs nothing newer than Dart 3.0 and
+# `web_socket_channel` 3.0.3 starts at 3.3.0, so the bound is a house rule
+# rather than a requirement of the source.
 environment:
-  sdk: ^3.3.0
+  sdk: ^3.12.0
 
 dependencies:
-  web_socket_channel: ^3.0.3
+  web_socket_channel: ">=3.0.3 <4.0.0"
 
-# Ranged rather than caret-pinned to their newest: a caret on the current
-# major would need a newer SDK than the bound above, which would make the
-# floor unresolvable. Pub picks the newest version each SDK can take.
 dev_dependencies:
-  lints: '>=3.0.0 <7.0.0'
-  test: '>=1.25.0 <2.0.0'
+  lints: ">=6.0.0 <7.0.0"
+  test: ">=1.31.0 <2.0.0"

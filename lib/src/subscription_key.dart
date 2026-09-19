@@ -21,10 +21,10 @@ final class SubscriptionKey {
   /// Entries in [args] with a null value are dropped, so an optional argument
   /// can be passed straight through without a conditional at the call site.
   SubscriptionKey(this.channel, [Map<String, String?> args = const {}])
-      : args = Map.unmodifiable(<String, String>{
-          for (final MapEntry<String, String?> e in args.entries)
-            if (e.value != null) e.key: e.value!,
-        });
+    : args = Map.unmodifiable(<String, String>{
+        for (final MapEntry<String, String?> e in args.entries)
+          if (e.value != null) e.key: e.value!,
+      });
 
   /// Rebuilds a key from the canonical [id] of another.
   ///

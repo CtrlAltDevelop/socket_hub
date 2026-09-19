@@ -22,13 +22,13 @@ void main() {
       tick: manual,
       build: (SubscriptionKey key, int tick) => switch (key.channel) {
         'ticker' => <String, Object?>{
-            'symbol': key.args['symbol'],
-            'last': 100 + tick,
-          },
+          'symbol': key.args['symbol'],
+          'last': 100 + tick,
+        },
         'candle' => <String, Object?>{
-            'interval': key.args['interval'],
-            'close': 100 + tick,
-          },
+          'interval': key.args['interval'],
+          'close': 100 + tick,
+        },
         _ => null,
       },
     );
