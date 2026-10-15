@@ -5,6 +5,16 @@
 - `SubscriptionKey.tryParse` reads a key back from an id that might not be
   well-formed — a persisted cache, a value from outside the process — without
   the caller having to catch a `FormatException` itself.
+- `SubscriptionKey.id` is now built once, in the constructor, instead of being
+  re-sorted and rebuilt on every `==`/`hashCode` call — the hot path of every
+  subscribe, unsubscribe and routed frame.
+- `WebSocketTransport` takes a `maxIncomingBytes`: a frame over that size is
+  rejected as a socket error (torn down and reconnected, like any other), so a
+  misbehaving or compromised server cannot force an unbounded decode on every
+  client connected to it.
+- `WebSocketTransport.connect` warns — to `onInsecure`, or `print` if unset —
+  when `url` is not `wss://`. The connection still works over plain `ws://`;
+  it is just not encrypted, and now says so instead of silently proceeding.
 - A `publish.yml` workflow tags a GitHub release as the trigger to publish to
   pub.dev, verifying the tag is on `main`, matches the `pubspec.yaml` version
   and has a CHANGELOG entry before it runs `dart pub publish`.

@@ -24,7 +24,25 @@ final class SubscriptionKey {
     : args = Map.unmodifiable(<String, String>{
         for (final MapEntry<String, String?> e in args.entries)
           if (e.value != null) e.key: e.value!,
-      });
+      }),
+      id = _buildId(channel, args);
+
+  static String _buildId(String channel, Map<String, String?> args) {
+    final List<String> names = <String>[
+      for (final MapEntry<String, String?> e in args.entries)
+        if (e.value != null) e.key,
+    ]..sort();
+    if (names.isEmpty) return channel;
+    final StringBuffer buffer = StringBuffer(channel);
+    for (final String name in names) {
+      buffer
+        ..write('|')
+        ..write(name)
+        ..write('=')
+        ..write(args[name]);
+    }
+    return buffer.toString();
+  }
 
   /// Rebuilds a key from the canonical [id] of another.
   ///
@@ -73,20 +91,11 @@ final class SubscriptionKey {
   /// A canonical string form, unique per (channel, args) pair.
   ///
   /// Used as the map key for this subscription's stream and reference count,
-  /// and stable across runs, so it is safe to log or to persist.
-  String get id {
-    if (args.isEmpty) return channel;
-    final List<String> names = args.keys.toList()..sort();
-    final StringBuffer buffer = StringBuffer(channel);
-    for (final String name in names) {
-      buffer
-        ..write('|')
-        ..write(name)
-        ..write('=')
-        ..write(args[name]);
-    }
-    return buffer.toString();
-  }
+  /// and stable across runs, so it is safe to log or to persist. Built once,
+  /// in the constructor — [hashCode] and [==] are on the hot path of every
+  /// subscribe, unsubscribe and routed frame, so neither should pay to
+  /// re-sort [args] and rebuild this string on every call.
+  final String id;
 
   /// This key's [args] merged with [extra], as a new key on the same channel.
   ///
