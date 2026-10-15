@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0
+
+- `SubscriptionKey.tryParse` reads a key back from an id that might not be
+  well-formed — a persisted cache, a value from outside the process — without
+  the caller having to catch a `FormatException` itself.
+- A `publish.yml` workflow tags a GitHub release as the trigger to publish to
+  pub.dev, verifying the tag is on `main`, matches the `pubspec.yaml` version
+  and has a CHANGELOG entry before it runs `dart pub publish`.
+
 ## 1.2.0
 
 - No change to the published code. CI moved to the shared reusable workflow in

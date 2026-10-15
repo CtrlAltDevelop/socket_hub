@@ -53,6 +53,17 @@ final class SubscriptionKey {
     return SubscriptionKey(parts.first, args);
   }
 
+  /// Rebuilds a key from [id], or null if it is not a valid [parse] input —
+  /// for reading back an id from somewhere that is not trusted, like a
+  /// persisted cache or a value from outside the process.
+  static SubscriptionKey? tryParse(String id) {
+    try {
+      return SubscriptionKey.parse(id);
+    } on FormatException {
+      return null;
+    }
+  }
+
   /// The channel name, as the server spells it.
   final String channel;
 

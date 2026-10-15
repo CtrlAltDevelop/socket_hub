@@ -103,6 +103,15 @@ void main() {
       expect(() => SubscriptionKey.parse('ticker|=BTC'), throwsFormatException);
     });
 
+    test('tryParse mirrors parse, null instead of throwing', () {
+      expect(
+        SubscriptionKey.tryParse('ticker|symbol=BTC'),
+        SubscriptionKey('ticker', {'symbol': 'BTC'}),
+      );
+      expect(SubscriptionKey.tryParse(''), isNull);
+      expect(SubscriptionKey.tryParse('ticker|symbol'), isNull);
+    });
+
     test('toString names the id', () {
       expect(
         SubscriptionKey('ticker', <String, String>{'symbol': 'BTC'}).toString(),
