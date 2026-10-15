@@ -16,6 +16,10 @@ name: Publish
 on:
   push:
     tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
+  # Lets a failed run be retried without deleting and recreating the tag —
+  # dispatch it against the existing tag ref (`gh workflow run publish.yml
+  # --ref vX.Y.Z`) and GITHUB_REF_NAME below is that tag, same as a real push.
+  workflow_dispatch:
 
 permissions: {}
 
